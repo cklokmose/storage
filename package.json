@@ -1,0 +1,12 @@
+{
+  "name": "storage",
+  "version": "0.0.1",
+  "description": "A storage system",
+  "keywords": ["storage"],
+  "homepage": "",
+  "author": "Clemens N. Klokmose <clemens@cs.au.dk>, Bjarke Jungberg <bjarkejm@cs.au.dk>",
+  "main": "index.coffee",
+  "dependencies": {
+    "coffee-script": "= 1.1.0"
+  }
+}
