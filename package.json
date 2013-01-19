@@ -1,12 +1,21 @@
 {
   "name": "storage",
   "version": "0.0.1",
-  "description": "A storage system",
+  "description": "A storage system for node.js and couchdb",
   "keywords": ["storage"],
-  "homepage": "",
-  "author": "Clemens N. Klokmose <clemens@cs.au.dk>, Bjarke Jungberg <bjarkejm@cs.au.dk>",
+  "author": {
+     "name": "Clemens N. Klokmose",
+     "email": "clemens@cs.au.dk"
+   },
+   "contributors": [
+     {
+       "name": "Bjarke Jungberg",
+       "email": "bjarkejm@cs.au.dk"
+     }
+   ],
   "main": "index.coffee",
   "dependencies": {
     "coffee-script": "= 1.1.0"
-  }
+  },
+  "_id": "storage@0.0.1",
 }
