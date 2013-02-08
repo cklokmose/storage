@@ -6,10 +6,7 @@ express = require 'express'
 url = require 'url'
 udp = require 'dgram'
 rest = require './rest'
-shareserver = require('share').server
 shareclient = require('share').client
-storage_client = require './storage_client'
-
 
 class exports.Storage
     
@@ -37,6 +34,17 @@ class exports.Storage
             for singleton in @singletons
                 names.push singleton.name
             res.send names
+            
+        @app.get '/storage/client.js', (req, res) =>
+            fs.readFile './client/client.coffee', 'utf-8', (error, data) =>
+                try
+                    cs = CoffeeScript.compile data
+                    res.send cs
+                catch error
+                    console.log "Failed compiling client.coffee"
+                    console.log error
+                    res.statusCode = 500
+                    res.send {"error":"server error", "reason":"storage server could not compile storage client!"}
         
         dbhost = if dbinfo.host? then dbinfo.host else 'localhost'
         dbport = if dbinfo.port? then dbinfo.port else 5984
