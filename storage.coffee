@@ -6,6 +6,7 @@ express = require 'express'
 url = require 'url'
 udp = require 'dgram'
 rest = require './rest'
+shareserver = require('share').server
 shareclient = require('share').client
 
 class exports.Storage
