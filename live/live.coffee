@@ -59,9 +59,6 @@ $(document).ready () ->
     setTimeout(
                   () =>
                       loadLiveView()
-                      #The tuio library is quite low-level so we actively poll for updates
-                      #When debugging it makes sense e.g. to increase the frequency to say 200ms or 1000ms
-                      #timer = setInterval(updateTuio, 15)
                   , 
                   1000)
     

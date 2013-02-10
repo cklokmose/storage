@@ -1,19 +1,19 @@
 http = require 'http'
-cs = require 'coffee-script'
+CoffeeScript = require 'coffee-script'
 util = require 'util'
 cradle = require 'cradle'
 express = require 'express'
 url = require 'url'
-udp = require 'dgram'
 rest = require './rest'
 shareserver = require('share').server
 shareclient = require('share').client
+fs = require 'fs'
 
 class exports.Storage
     
     constructor: (@bootstrapping = false) ->
 
-    attachServer: (@app= null, dbinfo = {}) ->
+    attachServer: (@app= null, dbinfo = {}, cb = () ->) ->
         @documents = []
         @singletons = []
         
@@ -37,8 +37,9 @@ class exports.Storage
             res.send names
             
         @app.get '/storage/client.js', (req, res) =>
-            fs.readFile './client/client.coffee', 'utf-8', (error, data) =>
+            fs.readFile __dirname+'/client/client.coffee', 'utf-8', (error, data) =>
                 try
+                    res.contentType 'application/javascript'
                     cs = CoffeeScript.compile data
                     res.send cs
                 catch error
@@ -46,17 +47,66 @@ class exports.Storage
                     console.log error
                     res.statusCode = 500
                     res.send {"error":"server error", "reason":"storage server could not compile storage client!"}
+                    
+        @app.get '/storage/live.js', (req, res) =>
+            fs.readFile __dirname+'/live/live.coffee', 'utf-8', (error, data) =>
+                try
+                    res.contentType 'application/javascript'
+                    cs = CoffeeScript.compile data
+                    res.send cs
+                catch error
+                    console.log "Failed compiling client.coffee"
+                    console.log error
+                    res.statusCode = 500
+                    res.send {"error":"server error", "reason":"storage server could not compile live client!"}
+                    
         
         dbhost = if dbinfo.host? then dbinfo.host else 'localhost'
         dbport = if dbinfo.port? then dbinfo.port else 5984
-        dbname = if dbinfo.name? then dbinfo.name else "document"
+        @dbname = if dbinfo.name? then dbinfo.name else "document"
         
-        @_connectToDb dbhost, dbport, dbname
-        @_setupShareJs()
-        return @app
+        @_connectToDb dbhost, dbport, @dbname, () =>
+            @_setupShareJs()
+            cb @app
  
-    _connectToDb: (host, port, name) ->
+    _createShareJSDB: (db, cb) ->
+        db.exists (err, exist) =>
+            if err?
+                console.log err
+            if not exist
+                console.log "ShareJS database does not exist, creating it now..."
+                db.create () =>
+                    console.log "Creating ShareJS design docs..."
+                    @dbShare.save '_design/sharejs', {
+                        operations: {
+                            map: (doc) ->
+                                if doc.docName
+                                    emit([doc.docName, doc.v], {op:doc.op, meta:doc.meta})
+                                }
+                    },
+                    (err, res) =>
+                        if err?
+                            console.log err
+                        else
+                            cb()
+            else
+                cb()
+    
+    _connectToDb: (host, port, name, cb) ->
         @db = new(cradle.Connection)(host, port, {cache: true,raw: false}).database(name)
+        @dbShare = new(cradle.Connection)(host, port, {cache: true,raw: false}).database(name+"-sharejs")
+        @db.exists (err, exist) =>
+            if err?
+                console.log err
+            if not exist
+                console.log "Database " + name + " does not exist, creating it now..."
+                @db.create () =>
+                    @_createShareJSDB @dbShare, () ->
+                        cb()
+            else
+                @_createShareJSDB @dbShare, () ->
+                    cb()
+                
         
     _setupShareJs: () ->
         @shareApp = express()
@@ -64,7 +114,7 @@ class exports.Storage
             res.header 'Access-Control-Allow-Origin', '*'
             next()
         
-        options = { db: { type: 'couchdb', uri: 'http://localhost:5984/notebook-sharejs' }, port: 5984 };
+        options = { db: { type: 'couchdb', uri: 'http://localhost:5984/'+ @dbname + '-sharejs' }, port: 5984 };
         shareserver.attach(@shareApp, options)
         
         @shareApp.listen(8001)
@@ -87,7 +137,7 @@ class exports.Storage
         viewStr = '(doc) ->\n\tif (doc.type && doc.type == "'+name+'")\n\t\temit(null, doc)'
         
         viewWithName = () ->
-            return cs.eval viewStr 
+            return CoffeeScript.eval viewStr 
         
         view = viewWithName()
         @db.save '_design/'+name, {
@@ -97,10 +147,9 @@ class exports.Storage
                 }
             }
             validate_doc_update: validation
-        }
-        
-        if not @bootstrapping
-            @_registerDocumentMonitor name
+        }, () =>
+            if not @bootstrapping
+                @_registerDocumentMonitor name
 
     #Register a singleton that will contain a list of all documents of a type 
     _registerDocumentMonitor: (name) ->
@@ -159,15 +208,14 @@ class exports.Storage
                     else
                         @_createBody bodytype, res.id, (err) =>
                             if err?
-                                throw err
+                                console.log "Body already exists?"
+                            if body?
+                                @_insertInBody bodytype, res.id, body, (err) =>
+                                    if err?
+                                        throw err
+                                    cb savedDoc  
                             else
-                                if body?
-                                    @_insertInBody bodytype, res.id, body, (err) =>
-                                        if err?
-                                            throw err
-                                        cb savedDoc  
-                                else
-                                    cb savedDoc 
+                                cb savedDoc 
 
     postElement: (id, body, name, cb) ->
         @db.get id, (error, doc) =>
