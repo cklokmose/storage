@@ -3,6 +3,7 @@ express = require 'express'
 storage = require('..').storage
 testData= require './test_data'
 http = require 'http'
+async = require 'async'
 
 clearDB = (db, cb) ->
     db.destroy (err, res) ->
@@ -11,7 +12,7 @@ clearDB = (db, cb) ->
         cb()
 
 
-insertDoc = (doc) ->
+insertDoc = (doc, cb) ->
     post_data = JSON.stringify doc
         
     post_options = {
@@ -27,6 +28,7 @@ insertDoc = (doc) ->
         res.setEncoding 'utf8'
         res.on 'data', (chunk) =>
             console.log 'insert ok:', doc
+            cb()
  
     post_req.write post_data
     post_req.end()
@@ -44,12 +46,17 @@ clearDB storageDb, () =>
         storageServer.attachServer app, {'host': 'localhost', 'port': 5984, 'name': 'test_storage'}, (app) ->
             console.log 'inserting from data.json'
             app.listen 8000
-            for doc_type of testData
-                storageServer.registerDocument doc_type
-            
-                doc_array = testData[doc_type]
-                for doc in doc_array
-                    insertDoc doc
+            insert = (doc_type, cb) ->
+                storageServer.registerDocument doc_type, (error) ->
+                    if error?
+                        console.log error
+                    else
+                        doc_array = testData[doc_type]
+                        for doc in doc_array
+                            insertDoc doc, () ->
+                                cb()
+            async.eachSeries Object.keys(testData), insert, (error) ->
+
             storageServer.registerSingleton "TestSingleton"
             
 

@@ -126,7 +126,7 @@ class exports.Storage
         singleton = new rest.Singleton(name, this)
         @singletons.push singleton
         
-    registerDocument: (name, validation=null) ->
+    registerDocument: (name, cb, validation=null) ->
         document = new rest.Document(name, this)
         @documents.push document
         if not validation?
@@ -149,28 +149,43 @@ class exports.Storage
             validate_doc_update: validation
         }, () =>
             if not @bootstrapping
-                @_registerDocumentMonitor name
+                @_registerDocumentMonitor name, (error) ->
+                    cb error
+                    
 
     #Register a singleton that will contain a list of all documents of a type 
-    _registerDocumentMonitor: (name) ->
+    _registerDocumentMonitor: (name, cb) ->
         singletonName = name+"Monitor"
         @registerSingleton singletonName
-        @_setDocumentNames name, singletonName
+        @_setDocumentNames name, (error) ->
+            cb error
+            
 
     #Get all documents of @param type and save list of doc names in 
     #[DocType]Monitor singleton
-    _setDocumentNames: (type, singletonName) ->
+    _setDocumentNames: (type, cb) ->
         @getCollection type, (error, results) ->
             if error?
-                console.log error
+                cb error
                 return
             nameList = [] 
             for docu in results
-                nameList.push docu.value.name
-            shareclient.open singletonName, 'json', 'http://localhost:8001/channel', (error, doc) =>
+                nameList.push docu.value._id
+            shareclient.open type+'Monitor', 'json', 'http://localhost:8001/channel', (error, monitor) =>
+                doc = monitor.at()
                 doc.set nameList, (error, rev) ->
                     if error?
-                        console.log error        
+                        cb error
+                    else
+                        cb null
+                        
+    _addToMonitor: (type, id) ->
+        shareclient.open type+'Monitor', 'json', 'http://localhost:8001/channel', (error, monitor) =>
+            list = monitor.at([])
+            list.push id, (error, rev) ->
+                if error?
+                    console.log error
+    
     ###
     #REST INTERFACE FOR DATABASE ACCESS
     ###
@@ -205,6 +220,8 @@ class exports.Storage
             if err?
                 throw err
             else
+                @_addToMonitor name, doc._id
+                
                 @db.get res.id, (err, savedDoc) =>
                     if err?
                         throw err

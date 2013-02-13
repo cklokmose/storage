@@ -60,3 +60,10 @@ test "Get body of document", 3, (err, doc) ->
             ok body?, "Got the body"
             ok body.snapshot.length == 3, "Body has correct size"
             ok body.snapshot[0] == "4", "Body contains the correct data"
+            
+test "Get collection monitor for Foo", 2, (err, doc) ->
+    stop()
+    storage.getCollectionMonitor 'Foo', (err, monitor) ->
+        start()
+        ok monitor?, "Got collection monitor"
+        ok monitor.snapshot[0] == 'foo1', "Collection monitor contains correct data"

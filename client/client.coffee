@@ -101,6 +101,11 @@ class Storage
         else
             _getCollectionCallbacks[docType].push callback
             
+    getCollectionMonitor: (docType, callback) ->
+        @getSingleton docType + 'Monitor', (error, doc) =>
+            callback error, doc
+    
+    
     _getSingletonCallbacks = {}
     getSingleton: (name, callback) ->
         found = false
