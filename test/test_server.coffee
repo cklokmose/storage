@@ -36,6 +36,9 @@ shareDb = new(cradle.Connection)('http://127.0.0.1', 5984, {cache: true,raw: fal
 clearDB storageDb, () =>
     clearDB shareDb, () =>
         app = express()
+        
+        app.use express.static __dirname
+        
         storageServer = new storage.Storage()
         storageServer.attachServer app, {'host': 'localhost', 'port': 5984, 'name': 'test_storage'}, (app) ->
             console.log 'inserting from data.json'

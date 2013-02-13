@@ -160,7 +160,10 @@ class exports.Storage
     #Get all documents of @param type and save list of doc names in 
     #[DocType]Monitor singleton
     _setDocumentNames: (type, singletonName) ->
-        @getCollection type, (results) ->
+        @getCollection type, (error, results) ->
+            if error?
+                console.log error
+                return
             nameList = [] 
             for docu in results
                 nameList.push docu.value.name
@@ -177,17 +180,18 @@ class exports.Storage
             (error, result) =>
                 if error?
                     console.log error + "No documents of type "+name
-                    throw error
-                cb result
+                    cb error, null
+                else
+                    cb null, result
         ) 
 
     getElement: (id, name, cb) ->
         @db.get id, (error, doc) =>
-                if (error || doc.type != name)
-                    console.log name+" does not exist"
-                    throw error?
-                else
-                    cb doc
+            console.log error
+            if (error || doc.type != name)
+                cb error, null
+            else
+                cb null, doc
 
     postCollection: (collectionBody, name, cb) ->
         doc = collectionBody
@@ -197,7 +201,6 @@ class exports.Storage
             body = doc.body
             delete doc.body
         doc.type = name
-        console.log 'posting '+doc.type
         @db.save doc, (err, res) =>
             if err?
                 throw err

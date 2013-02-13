@@ -41,11 +41,22 @@ class DocumentCache
             
     _callCallbacksNoError: (callbacks, value) ->
         for callback in callbacks
-            callback value
+            callback null, value
             
     _callCallbacksWithError: (callbacks, error, value) ->
         for callback in callbacks
             callback error, value
+            
+    _get: (url, cb) ->
+        $.ajax {
+            'url': url,
+            'type': 'GET',
+            'success': (data) -> 
+                cb null, data
+            ,
+            'error': (error) ->
+                cb error, null
+        }
     
     _getDocumentCallbacks = {}
     getDocument: (docType, id, callback) ->
@@ -54,9 +65,13 @@ class DocumentCache
             return
         if not _getDocumentCallbacks[id] or _getDocumentCallbacks[id].length == 0
             _getDocumentCallbacks[id] = [callback]
-            $.get @prefix + docType + '/' + id, (doc) =>
-                @docCache[id] = new DocumentShell(doc)
-                @_callCallbacksNoError _getDocumentCallbacks[id], @docCache[id]
+            
+            @_get @prefix + docType + '/' + id, (error, doc) =>
+                if error?
+                    @_callCallbacksWithError _getDocumentCallbacks[id], error, null
+                else
+                    @docCache[id] = new DocumentShell(doc)
+                    @_callCallbacksNoError _getDocumentCallbacks[id], @docCache[id]
                 _getDocumentCallbacks[id] = []
         else
             _getDocumentCallbacks[id].push callback
@@ -65,15 +80,18 @@ class DocumentCache
     getCollection: (docType, callback) ->
         if not _getCollectionCallbacks[docType]? or _getCollectionCallbacks[docType].length == 0
             _getCollectionCallbacks[docType] = [callback]
-            $.get @prefix + docType, (docs) =>
-                results = []
-                for doc in docs
-                    if not doc.id in @docCache
-                        @docCache[doc.id].updateDoc(doc.value)
-                    else
-                        @docCache[doc.id] = new DocumentShell(doc.value)
-                    results.push @docCache[doc.id]
-                @_callCallbacksNoError _getCollectionCallbacks[docType], results
+            @_get @prefix + docType, (error, docs) =>
+                if error?
+                    @_callCallbacksWithError _getCollectionCallbacks[docType], error, null
+                else
+                    results = []
+                    for doc in docs
+                        if not doc.id in @docCache
+                            @docCache[doc.id].updateDoc(doc.value)
+                        else
+                            @docCache[doc.id] = new DocumentShell(doc.value)
+                        results.push @docCache[doc.id]
+                    @_callCallbacksNoError _getCollectionCallbacks[docType], results
                 _getCollectionCallbacks[docType] = []
         else
             _getCollectionCallbacks[docType].push callback

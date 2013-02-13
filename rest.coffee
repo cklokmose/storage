@@ -27,23 +27,21 @@ class exports.Document
             @putBody(req, res)
 
     getCollection: (req, res) ->
-        try
-            @server.getCollection @name, (result) ->
+        @server.getCollection @name, (error, result) ->
+            if error?
+                res.send error, 404
+            else
                 res.send result
-        catch error
-            console.log 'error in get collection: '+error
-            res.send error
 
     getElement: (req, res) ->
         if req.query.mode? and req.query.mode == 'live'
             res.sendfile(__dirname+'/live/_view.html')
             return
-        try
-            @server.getElement req.params.id, @name, (result) ->
-                res.send result
-        catch error
-            console.log 'error in get element: '+error
-            res.send error
+        @server.getElement req.params.id, @name, (error, result) ->
+            if error?
+                res.send error, 404
+            else
+                res.send result            
 
     putCollection: (req, res) ->
         res.send("PUT to this collection is not supported")
