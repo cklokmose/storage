@@ -33,7 +33,7 @@ class DocumentShell
     get: (attr) ->
         return @_doc[attr]
 
-class DocumentCache
+class Storage
     initializeCache: (@prefix="", cb) ->
         @docCache = {}
         _getDocumentCallbacks = {}
@@ -125,4 +125,4 @@ class DocumentCache
         else
             _getSingletonCallbacks[name].push callback
             
-window.storage = new DocumentCache()
+window.storage = new Storage()
