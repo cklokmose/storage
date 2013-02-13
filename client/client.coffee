@@ -34,10 +34,15 @@ class DocumentShell
         return @_doc[attr]
 
 class DocumentCache
-    initializeCache: (@prefix="") ->
+    initializeCache: (@prefix="", cb) ->
         @docCache = {}
+        _getDocumentCallbacks = {}
+        _getCollectionCallbacks = {}
+        _getSingletonCallbacks = {}
+        @singletons = []
         $.get @prefix + 'Singletons', (singletons) =>
             @singletons = singletons
+            cb()
             
     _callCallbacksNoError: (callbacks, value) ->
         for callback in callbacks
@@ -109,11 +114,11 @@ class DocumentCache
             _getSingletonCallbacks[name] = [callback]
             try
                 sharejs.open name, 'json', 'http://'+window.location.hostname+':8001/channel', (error, doc) => 
-            	    if (error) 
-            		    @_callCallbacksWithError _getSingletonCallbacks[name], error, null
-            	    else 
-            	        @_callCallbacksWithError _getSingletonCallbacks[name], null, doc
-            	    _getSingletonCallbacks[name] = []
+                    if (error) 
+                        @_callCallbacksWithError _getSingletonCallbacks[name], error, null
+                    else 
+                        @_callCallbacksWithError _getSingletonCallbacks[name], null, doc
+                    _getSingletonCallbacks[name] = []
             catch error
                 @_callCallbacksWithError _getSingletonCallbacks, error, null
                 _getSingletonCallbacks[name] = []

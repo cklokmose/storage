@@ -40,6 +40,7 @@ clearDB storageDb, () =>
         app.use express.static __dirname
         
         storageServer = new storage.Storage()
+                
         storageServer.attachServer app, {'host': 'localhost', 'port': 5984, 'name': 'test_storage'}, (app) ->
             console.log 'inserting from data.json'
             app.listen 8000
@@ -49,4 +50,6 @@ clearDB storageDb, () =>
                 doc_array = testData[doc_type]
                 for doc in doc_array
                     insertDoc doc
+            storageServer.registerSingleton "TestSingleton"
+            
 
