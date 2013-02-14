@@ -34,7 +34,7 @@ loadLiveView = () ->
         doctype = path[1]
         docid = path[2]
     
-        storage.getDocument doctype, docid, (doc) ->
+        storage.getDocument doctype, docid, (error, doc) ->
             root.doc = doc
             doc.getBody (error, body) ->
                 if error?
@@ -55,10 +55,5 @@ loadLiveView = () ->
                 displaySingleton()
 
 $(document).ready () ->
-    storage.initializeCache('../')
-    setTimeout(
-                  () =>
-                      loadLiveView()
-                  , 
-                  1000)
-    
+    storage.initializeCache '../', () ->
+        loadLiveView()
