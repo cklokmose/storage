@@ -2,7 +2,7 @@ storageHost = window.location.host
 
 module "storage", {'setup': () ->
     stop()
-    storage.initializeCache "", () ->
+    storage.initializeCache () ->
         start()
     }
     

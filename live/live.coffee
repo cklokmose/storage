@@ -55,5 +55,5 @@ loadLiveView = () ->
                 displaySingleton()
 
 $(document).ready () ->
-    storage.initializeCache '../', () ->
+    storage.initializeCache () ->
         loadLiveView()
