@@ -22,7 +22,7 @@ test "Get non-existant collection", 1, () ->
         
 test "Get exisiting document", 3, () ->
     stop()
-    storage.getDocument 'Foo', 'foo1', (err, doc) ->
+    storage.getShell 'Foo', 'foo1', (err, doc) ->
         start()
         ok not err?, "No errors"
         ok doc, "Got a document"
@@ -30,13 +30,13 @@ test "Get exisiting document", 3, () ->
         
 test "Get non-existing document of existing type", 1, () ->
     stop()
-    storage.getDocument 'Foo', 'baz', (err, doc) ->
+    storage.getShell 'Foo', 'baz', (err, doc) ->
         start()
         ok err?, "No document with that ID"
         
 test "Get non-exisitng document of non-existing type", 1, () ->
     stop()
-    storage.getDocument 'Bar', 'baz', (err, doc) ->
+    storage.getShell 'Bar', 'baz', (err, doc) ->
         start()
         ok err?, "No document with type and ID"
                 
@@ -54,7 +54,7 @@ test "Get non-existing singleton", 1, (err, doc) ->
         
 test "Get body of document", 3, (err, doc) ->
     stop()
-    storage.getDocument 'Foo', 'foo1', (err, doc) ->
+    storage.getShell 'Foo', 'foo1', (err, doc) ->
         doc.getBody (err, body) ->
             start()
             ok body?, "Got the body"

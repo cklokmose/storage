@@ -79,7 +79,7 @@ class exports.Storage
         
         dbhost = if dbinfo.host? then dbinfo.host else 'localhost'
         dbport = if dbinfo.port? then dbinfo.port else 5984
-        @dbname = if dbinfo.name? then dbinfo.name else "document"
+        @dbname = if dbinfo.name? then dbinfo.name else "storage"
         
         @_connectToDb dbhost, dbport, @dbname, () =>
             @_setupShareJs()

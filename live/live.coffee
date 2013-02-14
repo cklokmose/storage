@@ -34,7 +34,7 @@ loadLiveView = () ->
         doctype = path[1]
         docid = path[2]
     
-        storage.getDocument doctype, docid, (error, doc) ->
+        storage.getShell doctype, docid, (error, doc) ->
             root.doc = doc
             doc.getBody (error, body) ->
                 if error?
