@@ -48,6 +48,22 @@ class exports.Storage
                     res.statusCode = 500
                     res.send {"error":"server error", "reason":"storage server could not compile storage client!"}
                     
+        getShareHost = (req) ->
+            host = req.headers.host.split ":"
+            return 'http://' + host[0] + ":8001" 
+        
+        @app.get '/storage/share/share.js', (req, res) =>
+            sharehost = getShareHost req
+            res.redirect sharehost + '/share/share.js'
+            
+        @app.get '/storage/share/json.js', (req, res) =>
+            sharehost = getShareHost req
+            res.redirect sharehost + '/share/json.js'
+            
+        @app.get '/storage/channel/bcsocket.js', (req, res) =>
+            sharehost = getShareHost req
+            res.redirect sharehost + '/channel/bcsocket.js'
+                    
         @app.get '/storage/live.js', (req, res) =>
             fs.readFile __dirname+'/live/live.coffee', 'utf-8', (error, data) =>
                 try
