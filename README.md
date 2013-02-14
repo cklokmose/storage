@@ -21,7 +21,7 @@ storage provides a set of server defined typed resources. Resources consists of 
      + GET to http://www.example.com/MyResource/myresource1/body will return a snapshot of the current state of the body
      + POST to http://www.example.com/MyResource/myresoirce1/body allows for sending JSON based operational transformations to the body according to the [ShareJS documentation](https://github.com/josephg/ShareJS/wiki).
 
-Browserbased javascript API
+Client API
 ---------------------------
 
 
@@ -52,11 +52,52 @@ storage.getCollection('MyCollection', function(err, shells) {
 });
 ```
 
-REST API
---------
+###Get shell
+
+```javascript
+storage.getShell('MyCollection', 'myshell1', function(err, doc) {
+     //...
+});
+```
+
+###Get body of a shell
+
+```javascript
+shell.getBody(function(err, body) {
+     //body is sharejs document
+     body.on('remoteop', function(op) {
+          //...
+     });
+});
+```
+
+###Get Singleton
+
+```javascript
+storage.getSingleton('MySingleton', function(err, singleton) {
+     //singleton is a sharejs document
+});
+```
+
+###Get Collection monitor singleton
+
+```javascript
+storage.getCollectionMonitor('MyCollection', function(err, monitor) {
+   //monitor is a sharejs document containing a list of shell IDs with type MyCollection
+});
+```
 
 Server API
 ----------
+
+The storage server relies on the [express web framework](http://expressjs.com).
+
+
+
+
+REST API
+--------
+
 
 Node.js client API
 ------------------
