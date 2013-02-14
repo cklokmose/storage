@@ -1,4 +1,4 @@
-class DocumentShell
+class Shell
     
     constructor: (@_doc) ->
         @callbacks = []
@@ -34,7 +34,7 @@ class DocumentShell
         return @_doc[attr]
 
 class Storage
-    initializeCache: (@prefix="", cb) ->
+    initializeCache: (cb, @prefix="") ->
         @docCache = {}
         _getDocumentCallbacks = {}
         _getCollectionCallbacks = {}
@@ -75,7 +75,7 @@ class Storage
                 if error?
                     @_callCallbacksWithError _getDocumentCallbacks[id], error, null
                 else
-                    @docCache[id] = new DocumentShell(doc)
+                    @docCache[id] = new Shell(doc)
                     @_callCallbacksNoError _getDocumentCallbacks[id], @docCache[id]
                 _getDocumentCallbacks[id] = []
         else
@@ -94,7 +94,7 @@ class Storage
                         if not doc.id in @docCache
                             @docCache[doc.id].updateDoc(doc.value)
                         else
-                            @docCache[doc.id] = new DocumentShell(doc.value)
+                            @docCache[doc.id] = new Shell(doc.value)
                         results.push @docCache[doc.id]
                     @_callCallbacksNoError _getCollectionCallbacks[docType], results
                 _getCollectionCallbacks[docType] = []
