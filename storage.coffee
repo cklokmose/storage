@@ -164,8 +164,8 @@ class exports.Storage
             }
             validate_doc_update: validation
         }, () =>
-            if not @bootstrapping
-                @_registerDocumentMonitor name, (error) ->
+            @_registerDocumentMonitor name, (error) ->
+                if cb?
                     cb error
                     
 
@@ -180,7 +180,7 @@ class exports.Storage
     #Get all documents of @param type and save list of doc names in 
     #[DocType]Monitor singleton
     _setDocumentNames: (type, cb) ->
-        @getCollection type, (error, results) ->
+        @getCollection type, (error, results) =>
             if error?
                 cb error
                 return
@@ -189,19 +189,21 @@ class exports.Storage
                 nameList.push docu.value._id
             shareclient.open type+'Monitor', 'json', 'http://localhost:8001/channel', (error, monitor) =>
                 doc = monitor.at()
-                doc.set nameList, (error, rev) ->
+                monitor.set nameList, (error, rev) ->
                     if error?
                         cb error
                     else
                         cb null
                         
-    _addToMonitor: (type, id) ->
+    _addToMonitor: (type, id, cb) ->
         shareclient.open type+'Monitor', 'json', 'http://localhost:8001/channel', (error, monitor) =>
-            list = monitor.at([])
-            list.push id, (error, rev) ->
-                if error?
-                    console.log error
-    
+            if not monitor.snapshot?
+                monitor.set [id], (error, rev) =>
+                    cb error
+            else
+                list = monitor.at([])
+                list.push id, (error, rev) =>
+                    cb error
     ###
     #REST INTERFACE FOR DATABASE ACCESS
     ###
@@ -236,22 +238,23 @@ class exports.Storage
             if err?
                 throw err
             else
-                @_addToMonitor name, doc._id
-                
-                @db.get res.id, (err, savedDoc) =>
-                    if err?
+                @_addToMonitor name, doc._id, (error) =>
+                    if error?
                         throw err
-                    else
-                        @_createBody bodytype, res.id, (err) =>
-                            if err?
-                                console.log "Body already exists?"
-                            if body?
-                                @_insertInBody bodytype, res.id, body, (err) =>
-                                    if err?
-                                        throw err
-                                    cb savedDoc  
-                            else
-                                cb savedDoc 
+                    @db.get res.id, (err, savedDoc) =>
+                        if err?
+                            throw err
+                        else
+                            @_createBody bodytype, res.id, (err) =>
+                                if err?
+                                    console.log "Body already exists?"
+                                if body?
+                                    @_insertInBody bodytype, res.id, body, (err) =>
+                                        if err?
+                                            throw err
+                                        cb savedDoc  
+                                else
+                                    cb savedDoc 
 
     postElement: (id, body, name, cb) ->
         @db.get id, (error, doc) =>
