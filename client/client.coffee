@@ -121,7 +121,7 @@ class Storage
                 sharejs.open name, 'json', 'http://'+window.location.hostname+':8001/channel', (error, doc) => 
                     if (error) 
                         @_callCallbacksWithError _getSingletonCallbacks[name], error, null
-                    else 
+                    else
                         @_callCallbacksWithError _getSingletonCallbacks[name], null, doc
                     _getSingletonCallbacks[name] = []
             catch error

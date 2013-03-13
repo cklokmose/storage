@@ -66,4 +66,4 @@ test "Get collection monitor for Foo", 2, (err, doc) ->
     storage.getCollectionMonitor 'Foo', (err, monitor) ->
         start()
         ok monitor?, "Got collection monitor"
-        ok monitor.snapshot[0] == 'foo1', "Collection monitor contains correct data"
+        ok monitor.snapshot[0] == 'foo2', "Collection monitor contains correct data"

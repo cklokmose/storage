@@ -7,7 +7,7 @@ app = express();
 
 storageServer.attachServer(app, {'host': 'localhost', 'port': 5984, 'name': 'storage'}, function(app) {
     storageServer.registerDocument('MyDocument', function(error) {
-        console.log(error);
+        //...
     });
 });
 
