@@ -66,7 +66,7 @@ class Storage
     _getDocumentCallbacks = {}
     getShell: (docType, id, callback) ->
         if @docCache.hasOwnProperty id
-            callback @docCache[id]
+            callback null, @docCache[id]
             return
         if not _getDocumentCallbacks[id] or _getDocumentCallbacks[id].length == 0
             _getDocumentCallbacks[id] = [callback]
