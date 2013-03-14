@@ -21,6 +21,10 @@ storage provides a set of server defined typed resources. Resources consists of 
      + GET to http://www.example.com/MyResource/myresource1/body will return a snapshot of the current state of the body
      + POST to http://www.example.com/MyResource/myresoirce1/body allows for sending JSON based operational transformations to the body according to the [ShareJS documentation](https://github.com/josephg/ShareJS/wiki).
 
+Besides resources typed with a collection type like _MyResource_ described above, storage provides a __singleton__ resource. A singleton provides a single uniquely named sharejs document that can be accessed with a GET on http://www.example.com/MySingleton
+
+Each collection type has a singleton of e.g. named _MyResourceMonitor_ this singleton is a list of the ids of all resources with type 'MyResource'. This singleton can be used to monitor when new resources of a given type is created.
+
 Client API
 ---------------------------
 
